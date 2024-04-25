@@ -1,0 +1,44 @@
+name: Run Tests
+
+on:
+  push:
+    branches:
+      - "master"
+  pull_request:
+    branches:
+      - "master"
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup env
+        run: |
+          docker compose build api db
+          docker compose up -d db
+
+      - name: Run lints
+        run: |
+          docker compose run -T api mypy .
+          docker compose run -T api ruff check .
+          docker compose run -T api ruff format . --check
+
+      - name: Run tests
+        run: |
+          docker compose run -T api pytest --cov=.
+          docker compose run -T api coverage report --show-missing --format=markdown >> $GITHUB_STEP_SUMMARY
+          docker compose run -T api coverage html
+          docker compose run -T api coverage report --fail-under=100
+
+      - name: Clean
+        run: docker compose down -v --remove-orphans
+
+      - name: Store coverage files
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html
+          path: app/htmlcov
+          retention-days: 5

@@ -1,27 +1,37 @@
 [tool.poetry]
-name = "budgly-api"
+name = "budgly"
 version = "0.1.0"
-description = "Backend server for budgly app"
+description = "Server API to track expenses and do some KPI"
 authors = ["Alexis THIBAULT <alexis.thibault31@gmail.com>"]
-license = "LGPL-3.0"
+license = "LICENSE"
 readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.12"
-fastapi = "^0.110.0"
+uvicorn = { extras = ["standard"], version = "^0.29.0" }
+fastapi = "^0.110.1"
+pydantic = "^2.7.0"
 sqlmodel = "^0.0.16"
-uvicorn = {extras = ["standard"], version = "^0.29.0"}
-pydantic = "^2.6.4"
-pydantic-settings = "^2.2.1"
 alembic = "^1.13.1"
-pre-commit = "^3.7.0"
+psycopg = { extras = ["binary"], version = "^3.1.18" }
+pydantic-settings = "^2.2.1"
+tenacity = "^8.2.3"
+sqlalchemy-utils = "^0.41.2"
 
 [tool.poetry.group.dev.dependencies]
-ruff = "^0.3.4"
-black = "^24.3.0"
-isort = "^5.13.2"
 pytest = "^8.1.1"
+mypy = "^1.9.0"
+ruff = "^0.3.7"
+coverage = "^7.4.4"
+pre-commit = "^3.7.0"
+isort = "^5.13.2"
 httpx = "^0.27.0"
+black = "^24.4.0"
+pytest-cov = "^5.0.0"
+factory-boy = "^3.3.0"
+sqlalchemy = { extras = ["mypy"], version = "^2.0.29" }
+types-sqlalchemy-utils = "^1.0.1"
+types-factory-boy = "^0.4.1"
 
 [build-system]
 requires = ["poetry-core"]
@@ -29,8 +39,16 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
 cache_dir = ".pytest_cache"
-log_cli_level = 50
-python_files = "tests*.py"
+python_files = "tests_*.py"
+
+[tool.coverage.run]
+omit = [
+    "alembic/*",
+    "**/__init__.py",
+    "scripts/*",
+    "core/*",
+    "tests/*",
+]
 
 [tool.isort]
 multi_line_output = 3
@@ -38,27 +56,33 @@ include_trailing_comma = true
 force_grid_wrap = 0
 line_length = 88
 
+[tool.mypy]
+strict = true
+exclude = ["alembic", "tests.factories"]
+plugins = [
+    "pydantic.mypy",
+]
+
 [tool.ruff]
-target-version = "py312"
-exclude = []
+target-version = "py310"
+exclude = ["alembic"]
 
 [tool.ruff.lint]
 select = [
-    "E",  # pycodestyle errors
-    "W",  # pycodestyle warnings
-    "F",  # pyflakes
-    "I",  # isort
-    "B",  # flake8-bugbear
-    "C4",  # flake8-comprehensions
-    "UP",  # pyupgrade
+    "E",
+    "W",
+    "F",
+    "I",
+    "B",
+    "C4",
+    "UP",
 ]
 ignore = [
-    "E501",  # line too long, handled by black
-    "B008",  # do not perform function calls in argument defaults
-    "W191",  # indentation contains tabs
-    "B904",  # Allow raising exceptions without from e, for HTTPException
+    "E501",
+    "B008",
+    "W191",
+    "B904",
 ]
 
 [tool.ruff.lint.pyupgrade]
-# Preserve types, even if a file imports `from __future__ import annotations`.
 keep-runtime-typing = true
