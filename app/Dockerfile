@@ -20,4 +20,5 @@ COPY . .
 RUN poetry install --no-root --with dev
 
 # Launch server
+RUN chmod +x ./scripts/start.sh
 CMD ./scripts/start.sh

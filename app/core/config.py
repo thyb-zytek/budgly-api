@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str
+    POSTGRES_SSL_MODE: bool = False
 
     @computed_field  # type: ignore[misc]
     @property
@@ -37,6 +38,7 @@ class Settings(BaseSettings):
             host=self.POSTGRES_HOST,
             port=self.POSTGRES_PORT,
             path=self.POSTGRES_DB,
+            query="sslmode=require" if self.POSTGRES_SSL_MODE else None,
         )
 
 
