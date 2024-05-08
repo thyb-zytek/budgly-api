@@ -1,7 +1,7 @@
 from typing import Any, Generic, TypeVar, get_args
 
 from factory.alchemy import SQLAlchemyModelFactory
-from factory.base import FactoryMetaClass
+from factory.base import Factory, FactoryMetaClass
 from faker import Faker
 from sqlmodel import Session
 
@@ -34,6 +34,19 @@ class BaseFactory(Generic[T], SQLAlchemyModelFactory, metaclass=BaseFactoryMeta)
     def init_session(cls, session: Session) -> None:
         cls._meta.sqlalchemy_session = session
         cls._meta.sqlalchemy_session_persistence = "commit"
+
+    @classmethod
+    def create(cls, **kwargs) -> T:
+        return super().create(**kwargs)
+
+    @classmethod
+    def build(cls, **kwargs) -> T:
+        return super().build(**kwargs)
+
+
+class DefaultFactory(Generic[T], Factory, metaclass=BaseFactoryMeta):
+    class Meta:
+        abstract = True
 
     @classmethod
     def create(cls, **kwargs) -> T:

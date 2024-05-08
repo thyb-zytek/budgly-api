@@ -1,10 +1,21 @@
+import re
 import secrets
 from functools import lru_cache
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import PostgresDsn, computed_field
+from pydantic import AnyUrl, BeforeValidator, PostgresDsn, computed_field
 from pydantic_core import MultiHostUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+__all__ = ["settings", "Settings"]
+
+
+def parse_cors(v: str | None) -> list[str]:
+    if not v:
+        return ["*"]
+    elif isinstance(v, str):
+        return re.split(r"[\s,]", v)
+    raise ValueError(v)
 
 
 class Settings(BaseSettings):
@@ -27,6 +38,12 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str
     POSTGRES_SSL_MODE: bool = False
+
+    ALLOWED_HOSTS: Annotated[list[AnyUrl] | list[str], BeforeValidator(parse_cors)] = []
+
+    FIREBASE_APIKEY: str
+    FIREBASE_SA_KEYS_FILE: str
+    GOOGLE_OAUTH_SECRET_FILE: str
 
     @computed_field  # type: ignore[misc]
     @property

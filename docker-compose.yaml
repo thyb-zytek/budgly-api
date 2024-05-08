@@ -6,7 +6,7 @@ services:
     volumes:
       - ./app:/app
     ports:
-      - "8000:8000"
+      - "9000:9000"
 
   db:
     image: postgres:16

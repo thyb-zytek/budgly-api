@@ -18,7 +18,8 @@ RUN poetry config virtualenvs.create false  # Needed to Github Actions
 # Setup app environment
 COPY . .
 RUN poetry install --no-root --with dev
+RUN chmod +x ./scripts/setup_database.sh
+RUN ./scripts/setup_database.sh
 
-# Launch server
-RUN chmod +x ./scripts/start.sh
-CMD ./scripts/start.sh
+# Launch app
+CMD fastapi dev main.py
