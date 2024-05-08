@@ -33,6 +33,12 @@ git clone git@github.com:thyb-zytek/budgly-api.git
 cd budgly-api
 ```
 
+- Create .env file from .env.sample and change values with your own:
+
+```bash
+mv .env.sample .env
+```
+
 - Launch your stack:
 
 ```bash
