@@ -16,7 +16,7 @@ RUN pip install --no-cache-dir  poetry
 RUN poetry config virtualenvs.create false  # Needed to Github Actions
 
 # Setup app environment
-COPY ../app .
+COPY . .
 RUN poetry install --no-root
 RUN chmod +x ./scripts/setup_database.sh
 RUN ./scripts/setup_database.sh
