@@ -32,7 +32,7 @@ jobs:
       - name: Setup env
         run: |
           mv .env.sample .env
-          ll
+          ls -la
           docker compose build api db
           docker compose up -d db
 
