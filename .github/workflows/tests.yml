@@ -15,14 +15,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Firebase setup file
-        run: |
-          echo "$FIREBASE_SA_KEYS_FILE" > ./app/firebase_sa_keys.json
-          echo "$GOOGLE_OAUTH_SECRET_FILE" > ./app/google_oauth_secret.json
+      - name: create-json
+        uses: jsdaniell/create-json@v1.2.3
+        with:
+          name: "firebase_sa_keys.json"
+          json: ${{ secrets.FIREBASE_SA_KEYS_FILE_CONTENT }}
+          dir: 'app/'
+
+      - name: create-json
+        uses: jsdaniell/create-json@v1.2.3
+        with:
+          name: "google_oauth_secret.json"
+          json: ${{ secrets.GOOGLE_OAUTH_SECRET_FILE_CONTENT }}
+          dir: 'app/'
 
       - name: Setup env
         run: |
           mv .env.sample .env
+          ll
           docker compose build api db
           docker compose up -d db
 
