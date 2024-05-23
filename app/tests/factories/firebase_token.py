@@ -1,106 +1,77 @@
-from datetime import UTC, datetime, timedelta
-from typing import Literal
+from datetime import datetime, timedelta
 
 import factory
 import faker
+import jwt
 from factory import fuzzy
-from jose import jwt
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 from tests.factories import DefaultFactory
 
 PROVIDERS = ["password", "google.com"]
 
 
-class FirebaseProviderIdentity(BaseModel):
-    sign_in_provider: Literal["password", "google.com"]
-    identities: dict
-
-
-class FirebaseProviderIdentityFactory(factory.Factory):
-    class Meta:
-        exclude = ("email",)
-        model = FirebaseProviderIdentity
-
-    sign_in_provider = fuzzy.FuzzyChoice(PROVIDERS)
-    email = factory.Faker("email")
-
-    @factory.lazy_attribute
-    def identities(self):
-        if self.sign_in_provider == "password":
-            return {
-                "email": [self.email],
-            }
-
-        faker.Faker.seed(0)
-
-        return {
-            self.sign_in_provider: [faker.Faker().ean(length=13)],
-            "email": [self.email],
-        }
-
-
-class FirebaseTokenPayload(BaseModel):
-    iss: str = "https://securetoken.google.com/budgly-tracker-app"
-    aud: str = "budgly-tracker-app"
-    auth_time: int
-    user_id: str
-    sub: str
-    iat: int
-    exp: int
-    email: str
-    email_verified: bool
-    firebase: FirebaseProviderIdentity
-    uid: str
-
-
-class FirebaseTokenPayloadFactory(DefaultFactory):
-    class Meta:
-        model = FirebaseTokenPayload
-
-    firebase = factory.SubFactory(FirebaseProviderIdentityFactory)
-    auth_time = factory.lazy_attribute(
-        lambda _: int((datetime.now(UTC) + timedelta(seconds=3600)).timestamp())
-    )
-    user_id = fuzzy.FuzzyText()
-    uid = factory.SelfAttribute("user_id")
-    sub = factory.SelfAttribute("user_id")
-    iat = factory.SelfAttribute("auth_time")
-    exp = factory.SelfAttribute("auth_time")
-    email = factory.lazy_attribute(lambda item: item.firebase.identities["email"][0])
-    email_verified = factory.lazy_attribute(
-        lambda item: item.firebase.sign_in_provider == "google.com"
-    )
-
-
-class FirebaseToken(BaseModel):
-    kind: str
+class FirebasePayloadToken(BaseModel):
     localId: str
-    email: str
-    displayName: str
-    registered: bool
-    expiresIn: int
     idToken: str
     refreshToken: str
+    email: EmailStr
+    displayName: str
 
 
 class FirebaseTokenFactory(DefaultFactory):
     class Meta:
-        model = FirebaseToken
-        exclude = ("payload",)
+        model = FirebasePayloadToken
+        exclude = ("provider",)
 
-    kind = "identitytoolkit#VerifyPasswordResponse"
     localId = fuzzy.FuzzyText()
-    email = factory.lazy_attribute(lambda item: item.payload.email)
+    refreshToken = fuzzy.FuzzyText(length=80)
+    email = factory.Faker("email")
     displayName = factory.Faker("name")
-    registered = True
-    expiresIn = 3600
-    payload = factory.SubFactory(FirebaseTokenPayloadFactory)
-    idToken = factory.lazy_attribute(
-        lambda item: jwt.encode(
-            item.payload.model_dump(),
+    provider = fuzzy.FuzzyChoice(PROVIDERS)
+
+    @factory.lazy_attribute
+    def idToken(self):
+        auth_time = int((datetime.now() + timedelta(seconds=3600)).timestamp())
+        identities = {
+            "email": [self.email],
+        }
+        if self.provider == "google.com":
+            faker.Faker.seed(0)
+            identities[self.provider] = [faker.Faker().ean(length=13)]
+
+        return jwt.encode(
+            {
+                "iss": "https://securetoken.google.com/budgly-tracker-app",
+                "aud": "budgly-tracker-app",
+                "auth_time": auth_time,
+                "user_id": self.localId,
+                "sub": self.localId,
+                "iat": auth_time,
+                "exp": auth_time,
+                "email": self.email,
+                "email_verified": self.provider == "google.com",
+                "firebase": {
+                    "identities": identities,
+                    "sign_in_provider": self.provider,
+                },
+                "uid": self.localId,
+            },
             "secret_key",
             algorithm="HS256",
         )
-    )
-    refreshToken = fuzzy.FuzzyText(length=80)
+
+
+class FirebaseRefreshToken(BaseModel):
+    id_token: str
+    refresh_token: str
+
+
+class FirebaseRefreshTokenFactory(DefaultFactory):
+    class Meta:
+        model = FirebaseRefreshToken
+        exclude = ("firebase_token",)
+
+    firebase_token = factory.SubFactory(FirebaseTokenFactory)
+    id_token = factory.lazy_attribute(lambda obj: obj.firebase_token.idToken)
+    refresh_token = factory.lazy_attribute(lambda obj: obj.firebase_token.refreshToken)

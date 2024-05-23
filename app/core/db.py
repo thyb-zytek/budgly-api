@@ -1,23 +1,19 @@
-from datetime import datetime
+from collections.abc import Generator
 
-from sqlalchemy import Column, DateTime, func
-from sqlmodel import Field, SQLModel, create_engine
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlmodel import Field, SQLModel
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from core.config import settings
 
-engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
+engine = create_async_engine(str(settings.SQLALCHEMY_DATABASE_URI), future=True)
+
+
+async def get_session() -> Generator[AsyncSession, None, None]:
+    async_session = async_sessionmaker(engine, expire_on_commit=False)
+    async with async_session() as session:
+        yield session
 
 
 class BaseTable(SQLModel):
     id: int | None = Field(default=None, primary_key=True)
-
-    created_at: datetime | None = Field(
-        default=None,
-        sa_column=Column(
-            DateTime(timezone=True), server_default=func.now(), nullable=True
-        ),
-    )
-    updated_at: datetime | None = Field(
-        default=None,
-        sa_column=Column(DateTime(timezone=True), onupdate=func.now(), nullable=True),
-    )

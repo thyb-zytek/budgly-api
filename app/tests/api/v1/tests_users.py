@@ -1,21 +1,29 @@
 from fastapi.testclient import TestClient
+from sqlmodel.ext.asyncio.session import AsyncSession
 
-from models.user import FirebaseUser
+from models.user import User
 
 
-def test_users_get_me(
-    client: TestClient, generate_token: tuple[str, FirebaseUser]
+async def test_users_get_me(
+    client: TestClient, generate_token: tuple[str, User], db_session: AsyncSession
 ) -> None:
-    token, firebase_user = generate_token
-    response = client.get(
+    token, user = generate_token
+    response = await client.get(
         "/api/v1/users/me", headers={"Authorization": f"Bearer {token}"}
     )
     assert response.status_code == 200
-    assert response.json() == firebase_user.model_dump(mode="json")
+    assert response.json() == user.model_dump(mode="json")
+
+    db_user = await db_session.get(User, user.uid)
+
+    assert db_user is not None
+    assert db_user.email == user.email
 
 
-def test_users_get_me_invalid_token(client: TestClient) -> None:
-    response = client.get("/api/v1/users/me", headers={"Authorization": "Bearer token"})
+async def test_users_get_me_invalid_token(client: TestClient) -> None:
+    response = await client.get(
+        "/api/v1/users/me", headers={"Authorization": "Bearer token"}
+    )
 
     assert response.status_code == 401
     assert response.json() == {

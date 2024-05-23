@@ -4,10 +4,16 @@ import httpx
 from fastapi import APIRouter, Request
 from oauthlib.oauth2.rfc6749.errors import InvalidClientIdError, InvalidGrantError
 
+from core.authentication import (
+    FirebaseToken,
+    GoogleAuthorizationUrl,
+    GoogleToken,
+    RefreshTokenPayload,
+    UserSignIn,
+)
 from core.config import settings
 from core.dependencies import GoogleOAuthFlowDep
-from core.exception import FirebaseAuthError, FirebaseException
-from models.authentication import FirebaseToken, GoogleAuthorizationUrl, UserSignIn
+from core.exceptions import FirebaseAuthError, FirebaseException
 
 router = APIRouter()
 
@@ -50,3 +56,16 @@ async def auth_google(code: str, flow: GoogleOAuthFlowDep, request: Request) -> 
         return response.json()
     except (InvalidGrantError, InvalidClientIdError, httpx.HTTPStatusError):
         raise FirebaseException()
+
+
+@router.post("/refresh", response_model=GoogleToken, response_model_by_alias=False)
+async def refresh_token(payload: RefreshTokenPayload) -> Any:
+    try:
+        response = httpx.post(
+            f"https://securetoken.googleapis.com/v1/token?key={settings.FIREBASE_APIKEY}",
+            data={"grant_type": "refresh_token", **payload.model_dump()},
+        )
+        response.raise_for_status()
+        return response.json()
+    except httpx.HTTPStatusError:
+        raise FirebaseAuthError(detail="Invalid refresh token")

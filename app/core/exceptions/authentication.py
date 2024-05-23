@@ -28,3 +28,14 @@ class InvalidToken(HTTPException):
                 "message": "Invalid token",
             },
         )
+
+
+class ExpiredToken(HTTPException):
+    def __init__(self) -> None:
+        super().__init__(
+            status_code=401,
+            detail={
+                "code": "EXPIRED_TOKEN",
+                "message": "Token expired",
+            },
+        )

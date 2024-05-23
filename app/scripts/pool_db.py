@@ -1,7 +1,9 @@
+import asyncio
 import logging
 
 from sqlalchemy import text
 from sqlalchemy.orm import Session, sessionmaker
+from sqlmodel.ext.asyncio.session import AsyncSession
 from tenacity import after_log, before_log, retry, stop_after_attempt, wait_fixed
 
 from core.db import engine
@@ -19,22 +21,20 @@ wait_seconds = 2
     before=before_log(logger, logging.INFO),
     after=after_log(logger, logging.WARN),
 )
-def init(session: sessionmaker[Session]) -> None:
-    db = session()
-    try:
-        db.execute(text("Select 1"))
-    except Exception as e:
-        logger.error(e)
-        raise e
-    finally:
-        db.close()
+async def init(async_session: sessionmaker[Session]) -> None:
+    async with async_session() as session:
+        try:
+            await session.exec(text("Select 1"))
+        except Exception as e:
+            logger.error(e)
+            raise e
 
 
-def main() -> None:
+async def main() -> None:
     logger.info("Initializing service")
-    init(sessionmaker(autocommit=False, autoflush=False, bind=engine))
+    await init(sessionmaker(engine, expire_on_commit=False, class_=AsyncSession))
     logger.info("Service finished initializing")
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

@@ -1,6 +1,7 @@
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
+import logfire
 from fastapi import FastAPI, Request
 from fastapi.exceptions import HTTPException, RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,15 +9,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from api import authentication, main, v1
 from core.authentication import firebase_app
 from core.config import settings
+from core.logging import setup_logging
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+async def lifespan(application: FastAPI) -> AsyncGenerator[None, None]:
+    setup_logging()
     firebase_app()
 
-    app.include_router(main.router, tags=["Utilities"])
-    app.include_router(authentication.router, tags=["Authentication"], prefix="/auth")
-    app.include_router(
+    application.include_router(main.router, tags=["Utilities"])
+    application.include_router(
+        authentication.router, tags=["Authentication"], prefix="/auth"
+    )
+    application.include_router(
         v1.router, tags=["V1"], prefix=f"{settings.API_STR}{v1.__version__}"
     )
 
@@ -29,7 +34,11 @@ app = FastAPI(
     debug=settings.DEBUG,
     version=settings.VERSION,
     lifespan=lifespan,
+    swagger_ui_parameters={"deepLinking": False},
 )
+
+logfire.configure(console=False)
+logfire.instrument_fastapi(app)
 
 app.add_middleware(
     CORSMiddleware,
