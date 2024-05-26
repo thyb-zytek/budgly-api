@@ -20,4 +20,4 @@ RUN poetry install --no-root
 RUN chmod +x ./scripts/start.sh
 
 # Launch app
-CMD ./scripts/start.sh
+CMD poetry run ./scripts/start.sh
