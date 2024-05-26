@@ -12,7 +12,8 @@ ENV PYTHONFAULTHANDLER 1
 ENV PYTHONPATH=/app
 
 # Update and install usefull package
-RUN pip install --no-cache-dir  poetry
+RUN pip install --no-cache-dir poetry
+RUN poetry config virtualenvs.create false  # Needed to Render
 
 # Setup app environment
 COPY . .
@@ -20,4 +21,4 @@ RUN poetry install --no-root
 RUN chmod +x ./scripts/start.sh
 
 # Launch app
-CMD poetry run ./scripts/start.sh
+CMD ./scripts/start.sh
