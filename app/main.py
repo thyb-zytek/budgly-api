@@ -37,7 +37,7 @@ app = FastAPI(
     swagger_ui_parameters={"deepLinking": False},
 )
 
-logfire.configure(console=False)
+logfire.configure(token=settings.LOGFIRE_TOKEN, console=False)
 logfire.instrument_fastapi(app)
 
 app.add_middleware(

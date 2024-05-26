@@ -45,6 +45,8 @@ class Settings(BaseSettings):
     FIREBASE_SA_KEYS_FILE: str
     GOOGLE_OAUTH_SECRET_FILE: str
 
+    LOGFIRE_TOKEN: str
+
     @computed_field  # type: ignore[misc]
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> PostgresDsn:
