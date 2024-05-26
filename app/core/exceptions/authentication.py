@@ -2,9 +2,9 @@ from fastapi import HTTPException
 
 
 class FirebaseAuthError(HTTPException):
-    def __init__(self, detail: str) -> None:
+    def __init__(self, message: str) -> None:
         super().__init__(
-            status_code=401, detail={"code": "INVALID_CREDENTIALS", "message": detail}
+            status_code=401, detail={"code": "INVALID_CREDENTIALS", "message": message}
         )
 
 

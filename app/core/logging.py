@@ -1,6 +1,7 @@
 import logging
 
-from rich.logging import Console, RichHandler
+from rich.console import Console
+from rich.logging import RichHandler
 
 from core.config import settings
 

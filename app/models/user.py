@@ -2,6 +2,9 @@ from sqlmodel import Field, Relationship, SQLModel
 
 from models.extra import UserAccountLink
 
+if False:
+    from .account import Account
+
 
 class User(SQLModel, table=True):
     uid: str = Field(primary_key=True)

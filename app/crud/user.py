@@ -1,9 +1,9 @@
-from sqlmodel import Session
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from models import User
 
 
-async def get_or_create_user(user_in: User, session: Session) -> User:
+async def get_or_create_user(session: AsyncSession, user_in: User) -> User:
     user = await session.get(User, user_in.uid)
     if user is None:
         user = user_in

@@ -1,7 +1,7 @@
 import logging
 
 from fastapi import APIRouter
-from sqlalchemy import text
+from sqlmodel import select
 
 from core.dependencies import SessionDep
 
@@ -14,7 +14,7 @@ logger = logging.getLogger("budgly")
 async def healthcheck(session: SessionDep) -> str:
     """Check if server is up and DB is reachable."""
     try:
-        await session.exec(text("SELECT 1"))
+        await session.exec(select(1))
     except Exception as e:
         logger.error(e)
         return "KO"

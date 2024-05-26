@@ -1,11 +1,11 @@
-from fastapi.testclient import TestClient
+from httpx import AsyncClient
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from models.user import User
 
 
 async def test_users_get_me(
-    client: TestClient, generate_token: tuple[str, User], db_session: AsyncSession
+    client: AsyncClient, generate_token: tuple[str, User], db_session: AsyncSession
 ) -> None:
     token, user = generate_token
     response = await client.get(
@@ -20,7 +20,7 @@ async def test_users_get_me(
     assert db_user.email == user.email
 
 
-async def test_users_get_me_invalid_token(client: TestClient) -> None:
+async def test_users_get_me_invalid_token(client: AsyncClient) -> None:
     response = await client.get(
         "/api/v1/users/me", headers={"Authorization": "Bearer token"}
     )

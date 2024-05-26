@@ -2,14 +2,14 @@ from fastapi import HTTPException
 
 
 class NotFoundException(HTTPException):
-    def __init__(self, detail: str) -> None:
+    def __init__(self, message: str) -> None:
         super().__init__(
-            status_code=401, detail={"code": "NOT_FOUND", "message": detail}
+            status_code=404, detail={"code": "NOT_FOUND", "message": message}
         )
 
 
 class ValidationException(HTTPException):
-    def __init__(self, detail: str) -> None:
+    def __init__(self, message: str) -> None:
         super().__init__(
-            status_code=400, detail={"code": "VALIDATION_ERROR", "message": detail}
+            status_code=400, detail={"code": "VALIDATION_ERROR", "message": message}
         )

@@ -1,3 +1,5 @@
+from collections.abc import AsyncGenerator
+
 import jwt
 import pytest
 import pytest_asyncio
@@ -5,14 +7,14 @@ from asgi_lifespan import LifespanManager
 from httpx import ASGITransport, AsyncClient
 from pytest_mock.plugin import MockerFixture
 from sqlalchemy import NullPool
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import create_async_engine
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from core.dependencies import get_session
 from main import app
-from models import User
+from models import SQLModel, User
 from tests.conftest import settings
-from tests.factories import FirebaseTokenFactory
+from tests.factories import BaseFactory, FirebaseTokenFactory
 
 
 @pytest.fixture(scope="session")
@@ -25,20 +27,21 @@ async def engine():
 
 
 @pytest_asyncio.fixture
-async def db_session(engine) -> AsyncSession:
+async def db_session(engine) -> AsyncGenerator[AsyncSession, None]:
     async with engine.begin() as connection:
-        session_maker = async_sessionmaker(
-            engine, expire_on_commit=False, class_=AsyncSession
-        )
-        async with session_maker(bind=connection) as session:
+        # clean previous test data
+        await connection.run_sync(SQLModel.metadata.drop_all)
+        await connection.run_sync(SQLModel.metadata.create_all)
+
+        async with AsyncSession(bind=connection) as session:
+            BaseFactory.__async_session__ = session
+
             yield session
-            # await session.flush()
-            # await session.rollback()
 
 
 @pytest_asyncio.fixture
-async def client(db_session):
-    async def _override_get_db():
+async def client(db_session) -> AsyncGenerator[AsyncClient, None]:
+    async def _override_get_db() -> AsyncGenerator[AsyncSession, None]:
         yield db_session
 
     app.dependency_overrides[get_session] = _override_get_db
@@ -52,7 +55,7 @@ async def client(db_session):
 
 @pytest_asyncio.fixture
 def generate_token(mocker: MockerFixture) -> tuple[str, User]:
-    firebase_token = FirebaseTokenFactory.create()
+    firebase_token = FirebaseTokenFactory.build()
     mock = mocker.patch("firebase_admin.auth.verify_id_token")
     payload = jwt.decode(
         firebase_token.idToken,

@@ -2,7 +2,7 @@ import jwt
 import pytest
 from fastapi import Request
 from fastapi.security import HTTPAuthorizationCredentials
-from firebase_admin import auth
+from firebase_admin import auth  # type: ignore
 from pytest_mock import MockerFixture
 
 from core.dependencies import get_firebase_user, get_google_auth_flow, get_session
@@ -21,7 +21,7 @@ async def test_google_flow_dependencies(mocker: MockerFixture) -> None:
 
 
 async def test_firebase_user_dependencies(mocker: MockerFixture) -> None:
-    firebase_token = FirebaseTokenFactory.create()
+    firebase_token = FirebaseTokenFactory.build()
 
     mock = mocker.patch("firebase_admin.auth.verify_id_token")
     mock.return_value = jwt.decode(

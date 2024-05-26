@@ -5,8 +5,8 @@ from typing import Annotated
 import firebase_admin  # type: ignore
 from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from firebase_admin import auth  # type: ignore
-from google_auth_oauthlib.flow import Flow  # type: ignore  # type: ignore
+from firebase_admin import auth
+from google_auth_oauthlib.flow import Flow  # type: ignore
 from pydantic import BaseModel, EmailStr, Field, HttpUrl
 from starlette.datastructures import URL
 
@@ -30,7 +30,7 @@ class FirebaseToken(BaseModel):
     name: str = Field(..., alias="displayName")
 
 
-class GoogleToken(BaseModel):
+class RefreshToken(BaseModel):
     id_token: str
     refresh_token: str
 
@@ -83,4 +83,4 @@ def get_firebase_user(token: TokenDep) -> User:
         raise InvalidToken()
     except Exception as e:
         logger.error(e)
-        raise ServerError(detail=str(e))
+        raise ServerError(message=str(e))

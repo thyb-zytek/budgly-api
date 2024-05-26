@@ -7,7 +7,7 @@ from oauthlib.oauth2.rfc6749.errors import InvalidClientIdError, InvalidGrantErr
 from core.authentication import (
     FirebaseToken,
     GoogleAuthorizationUrl,
-    GoogleToken,
+    RefreshToken,
     RefreshTokenPayload,
     UserSignIn,
 )
@@ -28,7 +28,7 @@ async def login_with_email(payload: UserSignIn) -> Any:
         response.raise_for_status()
         return response.json()
     except httpx.HTTPStatusError:
-        raise FirebaseAuthError(detail="Invalid credentials")
+        raise FirebaseAuthError(message="Invalid credentials")
 
 
 @router.get("/google")
@@ -58,7 +58,7 @@ async def auth_google(code: str, flow: GoogleOAuthFlowDep, request: Request) -> 
         raise FirebaseException()
 
 
-@router.post("/refresh", response_model=GoogleToken, response_model_by_alias=False)
+@router.post("/refresh", response_model=RefreshToken, response_model_by_alias=False)
 async def refresh_token(payload: RefreshTokenPayload) -> Any:
     try:
         response = httpx.post(
@@ -68,4 +68,4 @@ async def refresh_token(payload: RefreshTokenPayload) -> Any:
         response.raise_for_status()
         return response.json()
     except httpx.HTTPStatusError:
-        raise FirebaseAuthError(detail="Invalid refresh token")
+        raise FirebaseAuthError(message="Invalid refresh token")

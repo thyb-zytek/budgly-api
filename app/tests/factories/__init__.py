@@ -1,9 +1,11 @@
-from .base import BaseFactory, DefaultFactory
-from .firebase_token import FirebaseRefreshTokenFactory, FirebaseTokenFactory
+from .account import AccountFactory
+from .base import BaseFactory
+from .firebase_token import FirebaseTokenFactory
+from .user import UserFactory
 
 __all__ = [
     "BaseFactory",
-    "DefaultFactory",
     "FirebaseTokenFactory",
-    "FirebaseRefreshTokenFactory",
+    "UserFactory",
+    "AccountFactory",
 ]

@@ -1,5 +1,6 @@
 import asyncio
 
+from _pytest.main import Session
 from sqlalchemy import NullPool
 from sqlalchemy.ext.asyncio import create_async_engine
 
@@ -14,10 +15,10 @@ pytest_plugins = [
 ]
 
 
-async def prepare_db():
+async def prepare_db() -> None:
     db_url = str(settings.SQLALCHEMY_DATABASE_URI)
 
-    async def _setup_db():
+    async def _setup_db() -> None:
         if await database_exists(db_url):
             await drop_database(db_url)
         await create_database(db_url)
@@ -31,7 +32,7 @@ async def prepare_db():
     engine.sync_engine.dispose()
 
 
-def pytest_sessionstart(session):
+def pytest_sessionstart(session: Session) -> None:
     if getattr(session.config, "workerinput", None) is not None:
         return
     asyncio.run(prepare_db())

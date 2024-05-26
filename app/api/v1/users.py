@@ -9,4 +9,4 @@ router = APIRouter()
 
 @router.get("/me", response_model=User)
 async def get_user(firebase_user: FirebaseUserDep, session: SessionDep) -> User:
-    return await get_or_create_user(firebase_user, session)
+    return await get_or_create_user(session, firebase_user)

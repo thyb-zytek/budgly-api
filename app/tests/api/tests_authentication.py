@@ -1,19 +1,24 @@
 import httpx
-from fastapi.testclient import TestClient
+from httpx import AsyncClient
 from pytest_mock.plugin import MockerFixture
 
-from core.authentication import FirebaseToken, RefreshTokenPayload, UserSignIn
+from core.authentication import (
+    FirebaseToken,
+    RefreshToken,
+    RefreshTokenPayload,
+    UserSignIn,
+)
 from tests.conftest import settings
-from tests.factories import FirebaseRefreshTokenFactory, FirebaseTokenFactory
+from tests.factories import FirebaseTokenFactory
 
 
 async def test_login_with_email(
-    client: TestClient,
+    client: AsyncClient,
     mocker: MockerFixture,
 ) -> None:
     paylaod = UserSignIn(email="test@gmail.com", password="test")
 
-    firebase_token = FirebaseTokenFactory.create(
+    firebase_token = FirebaseTokenFactory.build(
         **paylaod.model_dump(mode="json"),
         provider="password",
     ).model_dump(mode="json")
@@ -35,7 +40,7 @@ async def test_login_with_email(
 
 
 async def tests_login_with_email_not_existing_account(
-    client: TestClient,
+    client: AsyncClient,
     mocker: MockerFixture,
 ) -> None:
     payload = UserSignIn(email="test@gmail.com", password="test")
@@ -57,7 +62,7 @@ async def tests_login_with_email_not_existing_account(
     }
 
 
-async def tests_login_with_email_not_valid_email(client: TestClient) -> None:
+async def tests_login_with_email_not_valid_email(client: AsyncClient) -> None:
     response = await client.post(
         "/auth/login", json={"email": "test gmail.com", "password": "test"}
     )
@@ -77,7 +82,7 @@ async def tests_login_with_email_not_valid_email(client: TestClient) -> None:
     }
 
 
-async def test_google_authorization_url(client: TestClient) -> None:
+async def test_google_authorization_url(client: AsyncClient) -> None:
     response = await client.get("/auth/google")
 
     assert response.status_code == 200
@@ -86,8 +91,8 @@ async def test_google_authorization_url(client: TestClient) -> None:
     assert "https://accounts.google.com/o/oauth2/auth?response_type=code" in data["url"]
 
 
-async def test_google_sign_in(client: TestClient, mocker: MockerFixture) -> None:
-    firebase_token = FirebaseTokenFactory.create(
+async def test_google_sign_in(client: AsyncClient, mocker: MockerFixture) -> None:
+    firebase_token = FirebaseTokenFactory.build(
         provider="google.com",
     ).model_dump(mode="json")
 
@@ -115,7 +120,7 @@ async def test_google_sign_in(client: TestClient, mocker: MockerFixture) -> None
 
 
 async def test_google_sign_in_fail_fetch_token(
-    client: TestClient, mocker: MockerFixture
+    client: AsyncClient, mocker: MockerFixture
 ) -> None:
     mock = mocker.patch("httpx.post")
     mock.return_value = httpx.Response(
@@ -140,10 +145,11 @@ async def test_google_sign_in_fail_fetch_token(
     }
 
 
-async def test_refresh_token(client: TestClient, mocker: MockerFixture) -> None:
-    firebase_refresh_token = FirebaseRefreshTokenFactory.create().model_dump(
-        mode="json"
-    )
+async def test_refresh_token(client: AsyncClient, mocker: MockerFixture) -> None:
+    token = FirebaseTokenFactory.build()
+    firebase_refresh_token = RefreshToken(
+        id_token=token.idToken, refresh_token=token.refreshToken
+    ).model_dump(mode="json")
 
     mock = mocker.patch("httpx.post")
     mock.return_value = httpx.Response(
@@ -166,7 +172,7 @@ async def test_refresh_token(client: TestClient, mocker: MockerFixture) -> None:
     assert response.json() == firebase_refresh_token
 
 
-async def test_refresh_token_failed(client: TestClient, mocker: MockerFixture) -> None:
+async def test_refresh_token_failed(client: AsyncClient, mocker: MockerFixture) -> None:
     mock = mocker.patch("httpx.post")
     mock.return_value = httpx.Response(
         status_code=500,
