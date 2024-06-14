@@ -17,6 +17,10 @@ async def lifespan(application: FastAPI) -> AsyncGenerator[None, None]:
     setup_logging()
     firebase_app()
 
+    if settings.ENVIRONMENT == "production":
+        logfire.configure(token=settings.LOGFIRE_TOKEN, console=False)
+        logfire.instrument_fastapi(app)
+
     application.include_router(main.router, tags=["Utilities"])
     application.include_router(
         authentication.router, tags=["Authentication"], prefix="/auth"
@@ -36,9 +40,6 @@ app = FastAPI(
     lifespan=lifespan,
     swagger_ui_parameters={"deepLinking": False},
 )
-
-logfire.configure(token=settings.LOGFIRE_TOKEN, console=False)
-logfire.instrument_fastapi(app)
 
 app.add_middleware(
     CORSMiddleware,

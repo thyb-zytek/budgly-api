@@ -28,11 +28,15 @@ target_metadata = SQLModel.metadata
 
 
 def get_url():
+    if os.getenv("USE_NEON_DB", False):
+        return os.getenv("NEON_DB_URL")
+
     user = os.getenv("POSTGRES_USER", "postgres")
     password = os.getenv("POSTGRES_PASSWORD", "")
     server = os.getenv("POSTGRES_SERVER", "db")
     port = os.getenv("POSTGRES_PORT", "5432")
     db = os.getenv("POSTGRES_DB", "app")
+
     return f"postgresql+asyncpg://{user}:{password}@{server}:{port}/{db}"
 
 
