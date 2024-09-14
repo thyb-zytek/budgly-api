@@ -5,41 +5,43 @@ description = "Server API to track expenses and do some KPI"
 authors = ["Alexis THIBAULT <alexis.thibault31@gmail.com>"]
 license = "LICENSE"
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.12"
-uvicorn = { extras = ["standard"], version = "^0.29.0" }
-fastapi = "^0.111.0"
-pydantic = "^2.7.1"
-sqlmodel = { extras = ["asyncio"], version = "^0.0.18" }
+fastapi = {extras = ["standard"], version = "^0.114.2"}
+uvicorn = {extras = ["standard"], version = "^0.30.6"}
+pydantic = "^2.9.1"
+sqlmodel = "^0.0.22"
+alembic = "^1.13.2"
 asyncpg = "^0.29.0"
-alembic = "^1.13.1"
-pydantic-settings = "^2.2.1"
-tenacity = "^8.2.3"
+pydantic-settings = "^2.5.2"
+tenacity = "^9.0.0"
 firebase-admin = "^6.5.0"
-httpx = "^0.27.0"
-google-auth-oauthlib = "^1.2.0"
-logfire = "^0.30.0"
-opentelemetry-instrumentation-asgi = "^0.45b0"
-opentelemetry-instrumentation-fastapi = "^0.45b0"
-pydantic-extra-types = "^2.7.0"
+httpx = "^0.27.2"
+google-auth-oauthlib = "^1.2.1"
+logfire = "^0.52.0"
+opentelemetry-instrumentation-asgi = "^0.48b0"
+opentelemetry-instrumentation-fastapi = "^0.48b0"
+pydantic-extra-types = "^2.9.0"
 logging = "^0.4.9.6"
 
+
 [tool.poetry.group.dev.dependencies]
-pytest = "^8.1.1"
-mypy = "^1.9.0"
-ruff = "^0.3.7"
-coverage = "^7.4.4"
-pre-commit = "^3.7.0"
+pytest = "^8.3.3"
+mypy = "^1.11.2"
+ruff = "^0.6.5"
+coverage = "^7.6.1"
+pre-commit = "^3.8.0"
 pytest-cov = "^5.0.0"
-sqlalchemy = { extras = ["mypy"], version = "^2.0.29" }
+polyfactory = "^2.16.2"
+sqlalchemy = {extras = ["mypy"], version = "^2.0.34"}
 pytest-mock = "^3.14.0"
 types-oauthlib = "^3.2.0.20240217"
 pytest-xdist = "^3.6.1"
-pytest-asyncio = "^0.23.6"
+pytest-asyncio = "^0.24.0"
 asgi-lifespan = "^2.1.0"
 pyjwt = "^2.8.0"
-polyfactory = "^2.16.0"
 
 [build-system]
 requires = ["poetry-core"]
